@@ -1,0 +1,238 @@
+// ============================================================================
+// Defender Endpoint Configuration Health Matrix
+// ============================================================================
+
+DeviceInfo
+| summarize LastHeartbeat = max(Timestamp) by DeviceId
+| join kind=inner (
+    DeviceTvmSecureConfigurationAssessment
+) on DeviceId
+| extend
+    Cfg = replace_string(ConfigurationId, "-", "_"),
+    Ctx = toupper(trim('[]["]+', tostring(Context)))
+| extend State = case(
+    IsApplicable == 0, "",
+    Cfg == "scid_2010",
+        case(
+            Ctx == "0", "ON",
+            Ctx == "1", "PASSIVE",
+            Ctx == "4", "BLOCKONLY",
+            Ctx
+        ),
+    Cfg startswith "scid_25",
+        case(
+            Ctx == "BLOCK", "ON",
+            Ctx
+        ),
+    IsCompliant == 1, "ON",
+    "OFF"
+)
+| summarize
+    ScidBag = make_bag(bag_pack(Cfg, State)),
+    take_any(*)
+    by DeviceId
+| evaluate bag_unpack(ScidBag)
+| where isnotempty(scid_20000)
+| extend
+    IsWindows = OSPlatform contains "Windows"
+| extend
+    IsActiveMode = IsWindows == false or scid_2010 == "ON"
+| extend
+    scid_2016 = case(
+        IsWindows == true and scid_2014 == "OFF",
+        "PROBLEM",
+        scid_2016
+    )
+| extend
+    scid_2001 = coalesce(scid_2001, scid_5001, scid_6001),
+    scid_2002 = coalesce(scid_2002, scid_5002, scid_6002),
+    scid_2012 = coalesce(scid_2012, scid_5090, scid_6090),
+    scid_2013 = coalesce(scid_2013, scid_5091, scid_6091),
+    scid_2003 = coalesce(scid_2003, scid_5092, ""),
+    scid_2016 = coalesce(scid_2016, scid_5094, scid_6094),
+    scid_2011 = coalesce(scid_2011, scid_5095, scid_6095)
+| extend
+    DeviceOnboarded = case(
+        scid_20000 == "ON", "OK",
+        scid_20000 == "OFF", "PROBLEM",
+        scid_20000
+    ),
+    SensorDataCollection = case(
+        scid_2001 == "ON", "OK",
+        scid_2001 == "OFF", "PROBLEM",
+        scid_2001
+    ),
+    ImpairedCommunications = case(
+        scid_2002 == "ON", "OK",
+        scid_2002 == "OFF", "PROBLEM",
+        scid_2002
+    ),
+    AntivirusSignatureVersion = case(
+        scid_2011 == "ON", "OK",
+        scid_2011 == "OFF", "PROBLEM",
+        scid_2011
+    ),
+    SensorOutdated = case(
+        scid_2030 == "ON", "OK",
+        scid_2030 == "OFF", "PROBLEM",
+        scid_2030
+    ),
+    AntivirusReporting = case(
+        scid_2014 == "ON", "OK",
+        scid_2014 == "OFF", "PROBLEM",
+        scid_2014
+    ),
+    TamperProtection = scid_2003,
+    SmartScreen = scid_2061,
+    SensorEnabled = scid_2000,
+    AntivirusEnabled = scid_2010
+| extend
+    BehaviorMonitoring = iff(
+        IsActiveMode,
+        scid_91,
+        scid_2010
+    ),
+    NetworkProtection = iff(
+        IsActiveMode,
+        scid_96,
+        scid_2010
+    ),
+    RealtimeProtection = iff(
+        IsActiveMode,
+        scid_2012,
+        scid_2010
+    ),
+    PUAProtection = iff(
+        IsActiveMode,
+        scid_2013,
+        scid_2010
+    ),
+    CloudProtection = iff(
+        IsActiveMode,
+        scid_2016,
+        scid_2010
+    ),
+    ControlledFolderAccess = iff(
+        IsActiveMode,
+        scid_2021,
+        scid_2010
+    )
+| extend
+    BlockMailExe = iff(
+        IsActiveMode,
+        scid_2500,
+        scid_2010
+    ),
+    BlockOfficeChildProc = iff(
+        IsActiveMode,
+        scid_2501,
+        scid_2010
+    ),
+    BlockOfficeExe = iff(
+        IsActiveMode,
+        scid_2502,
+        scid_2010
+    ),
+    BlockOfficeInjection = iff(
+        IsActiveMode,
+        scid_2503,
+        scid_2010
+    ),
+    BlockJavaScriptVBScriptExe = iff(
+        IsActiveMode,
+        scid_2504,
+        scid_2010
+    ),
+    BlockObfuscatedScripts = iff(
+        IsActiveMode,
+        scid_2505,
+        scid_2010
+    ),
+    BlockOfficeMacroW32API = iff(
+        IsActiveMode,
+        scid_2506,
+        scid_2010
+    ),
+    BlockUntrustedExecutables = iff(
+        IsActiveMode,
+        scid_2507,
+        scid_2010
+    ),
+    AdvancedRansomwareProtection = iff(
+        IsActiveMode,
+        scid_2508,
+        scid_2010
+    ),
+    BlockCredentialStealing = iff(
+        IsActiveMode,
+        scid_2509,
+        scid_2010
+    ),
+    BlockProcPSexecWMI = iff(
+        IsActiveMode,
+        scid_2510,
+        scid_2010
+    ),
+    BlockUnsignedEXEonUSB = iff(
+        IsActiveMode,
+        scid_2511,
+        scid_2010
+    ),
+    BlockOfficeCommunicationChildProc = iff(
+        IsActiveMode,
+        scid_2512,
+        scid_2010
+    ),
+    BlockAdobeReaderChildProc = iff(
+        IsActiveMode,
+        scid_2513,
+        scid_2010
+    ),
+    BlockWMIPersist = iff(
+        IsActiveMode,
+        scid_2514,
+        scid_2010
+    ),
+    BlockExploitedVulnerableSignedDrivers = iff(
+        IsActiveMode,
+        scid_2515,
+        scid_2010
+    )
+| project
+    DeviceId,
+    DeviceName,
+    OSPlatform,
+    LastHeartbeat,
+    DeviceOnboarded,
+    SensorDataCollection,
+    ImpairedCommunications,
+    AntivirusSignatureVersion,
+    SensorOutdated,
+    AntivirusReporting,
+    TamperProtection,
+    SmartScreen,
+    SensorEnabled,
+    AntivirusEnabled,
+    BehaviorMonitoring,
+    NetworkProtection,
+    RealtimeProtection,
+    PUAProtection,
+    CloudProtection,
+    ControlledFolderAccess,
+    BlockMailExe,
+    BlockOfficeChildProc,
+    BlockOfficeExe,
+    BlockOfficeInjection,
+    BlockJavaScriptVBScriptExe,
+    BlockObfuscatedScripts,
+    BlockOfficeMacroW32API,
+    BlockUntrustedExecutables,
+    AdvancedRansomwareProtection,
+    BlockCredentialStealing,
+    BlockProcPSexecWMI,
+    BlockUnsignedEXEonUSB,
+    BlockOfficeCommunicationChildProc,
+    BlockAdobeReaderChildProc,
+    BlockWMIPersist,
+    BlockExploitedVulnerableSignedDrivers
+| order by DeviceName asc
