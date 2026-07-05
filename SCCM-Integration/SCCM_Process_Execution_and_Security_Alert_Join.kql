@@ -34,6 +34,7 @@ DeviceProcessEvents
 
 // Part 2 — Devices running those processes that also have Defender alerts (device-level correlation, last 30d)
 DeviceProcessEvents
+| where Timestamp > ago(30d)
 | where FileName in~ ("smsexec.exe","sitecomp.exe","smswriter.exe","cmupdate.exe","smssqlbkup.exe","ccmexec.exe")
 | join kind=inner (
     AlertEvidence
