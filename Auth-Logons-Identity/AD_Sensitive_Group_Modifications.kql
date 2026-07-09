@@ -64,7 +64,7 @@ let Tier0Groups = datatable(TargetGroup:string)
 [
 'Enterprise Admins',
 'Domain Admins',
-'Domain Controllers'
+'Domain Controllers',
 'Administrators',
 'Enterprise Key Admins',
 'Account Operators',
