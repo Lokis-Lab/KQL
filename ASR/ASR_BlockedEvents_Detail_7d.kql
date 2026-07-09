@@ -3,7 +3,7 @@
 // Description:
 //   Retrieves detailed Attack Surface Reduction (ASR) rule enforcement events 
 //   from the DeviceEvents table over the past 7 days. Only blocked (non-audit) 
-//   events are included by filtering on AdditionalFields.IsAudit == "false".
+//   events are included by filtering on AdditionalFields.IsAudit == 0.
 //
 // Logic:
 //   • Filters DeviceEvents for ActionTypes starting with "Asr"
@@ -36,7 +36,7 @@ DeviceEvents
 | where Timestamp > ago(7d)
 | where ActionType startswith "Asr"
 | extend Parsed = parse_json(AdditionalFields)
-| where Parsed.IsAudit == "false"
+| where Parsed.IsAudit == 0
 | extend Category = case(
         ActionType in ("AsrExecutableEmailContentBlocked", "AsrOfficeCommAppChildProcessBlocked"), "Email",
         ActionType in ("AsrObfuscatedScriptBlocked", "AsrScriptExecutableDownloadBlocked"), "Script",
