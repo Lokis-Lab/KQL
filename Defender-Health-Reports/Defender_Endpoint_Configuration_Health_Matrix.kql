@@ -2,11 +2,11 @@
 // Defender Endpoint Configuration Health Matrix
 // ============================================================================
 
+let LatestAssessments = DeviceTvmSecureConfigurationAssessment
+| summarize arg_max(Timestamp, *) by DeviceId, ConfigurationId;
 DeviceInfo
 | summarize LastHeartbeat = max(Timestamp) by DeviceId
-| join kind=inner (
-    DeviceTvmSecureConfigurationAssessment
-) on DeviceId
+| join kind=inner LatestAssessments on DeviceId
 | extend
     Cfg = replace_string(ConfigurationId, "-", "_"),
     Ctx = toupper(trim('[]["]+', tostring(Context)))
