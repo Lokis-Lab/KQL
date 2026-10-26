@@ -9,7 +9,7 @@
 // Last Updated: 2025-09-10
 
 DeviceProcessEvents
-| where InitiatingProcessFileName has_any ("sc.exe","powershell.exe")
-| where ProcessCommandLine contains "create"
-| project Timestamp, DeviceName, InitiatingProcessFileName, ProcessCommandLine, AccountName
+| where FileName in~ ("sc.exe", "powershell.exe", "pwsh.exe")
+| where ProcessCommandLine has_any ("create", "New-Service")
+| project Timestamp, DeviceName, FileName, ProcessCommandLine, InitiatingProcessFileName, AccountName
 | order by Timestamp desc

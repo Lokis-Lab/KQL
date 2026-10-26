@@ -38,13 +38,13 @@ DeviceTvmInfoGathering
     ),
     AvIsEngineUpToDate = iif(
         isnull(AvIsEngineUpToDateRaw) or isnull(AvSignatureDataRefreshTime) or isnull(AvSignaturePublishTime)
-            or AvSignatureDataRefreshTime < ago(8d) or AvSignaturePublishTime < ago(8d),
+            or (AvIsEngineUpToDateRaw == "true" and (AvSignatureDataRefreshTime < ago(8d) or AvSignaturePublishTime < ago(8d))),
         "Unknown",
         AvIsEngineUpToDateRaw
     ),
     AvIsPlatformUpToDate = iif(
         isnull(AvIsPlatformUpToDateRaw) or isnull(AvSignatureDataRefreshTime) or isnull(AvSignaturePublishTime)
-            or AvSignatureDataRefreshTime < ago(8d) or AvSignaturePublishTime < ago(8d),
+            or (AvIsPlatformUpToDateRaw == "true" and (AvSignatureDataRefreshTime < ago(8d) or AvSignaturePublishTime < ago(8d))),
         "Unknown",
         AvIsPlatformUpToDateRaw
     )
