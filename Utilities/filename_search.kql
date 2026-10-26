@@ -4,7 +4,7 @@
 //   Searches the DeviceProcessEvents table for processes where the FileName 
 //   matches the specified string (wildcard-friendly).
 //   In this example, it looks for any process with a FileName containing 
-//   "Senate.Leagis.Desktop". You can replace that value with any substring 
+//   "ExampleApp.exe". You can replace that value with any substring 
 //   or full file name to hunt for a specific executable.
 //
 // Use cases:
@@ -21,6 +21,6 @@
 
 
 DeviceProcessEvents
-| where FileName like "Senate.Leagis.Desktop" //Change the file name inside the quotes. Doesn't have to be full file name
+| where FileName like "ExampleApp.exe" //Change the file name inside the quotes. Doesn't have to be full file name
 | project Timestamp, DeviceName, FileName, ProcessId, InitiatingProcessFileName, FolderPath, AccountName
 | order by Timestamp desc
